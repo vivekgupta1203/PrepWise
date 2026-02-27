@@ -34,8 +34,28 @@ const InterviewCard = async ({
     }[normalizedType] || "bg-light-600";
 
   const formattedDate = dayjs(
-    feedback?.createdAt || createdAt || Date.now()
+    feedback?.createdAt || createdAt || Date.now(),
   ).format("MMM D, YYYY");
+
+  function getRoleColor(role?: string) {
+    const colors = [
+      "from-indigo-500 to-purple-600",
+      "from-emerald-500 to-teal-600",
+      "from-blue-500 to-cyan-600",
+      "from-orange-500 to-amber-600",
+      "from-pink-500 to-rose-600",
+      "from-violet-500 to-fuchsia-600",
+    ];
+
+    if (!role) return colors[0];
+
+    let hash = 0;
+    for (let i = 0; i < role.length; i++) {
+      hash = role.charCodeAt(i) + ((hash << 5) - hash);
+    }
+
+    return colors[Math.abs(hash) % colors.length];
+  }
 
   return (
     <div className="card-border w-[360px] max-sm:w-full min-h-96">
@@ -45,20 +65,22 @@ const InterviewCard = async ({
           <div
             className={cn(
               "absolute top-0 right-0 w-fit px-4 py-2 rounded-bl-lg",
-              badgeColor
+              badgeColor,
             )}
           >
             <p className="badge-text ">{normalizedType}</p>
           </div>
 
-          {/* Cover Image */}
-          <Image
-            src={getRandomInterviewCover()}
-            alt="cover-image"
-            width={90}
-            height={90}
-            className="rounded-full object-fit size-[90px]"
-          />
+          {/* Role Initial Avatar */}
+          <div
+            className={`rounded-full size-[90px] flex items-center justify-center
+  text-white text-[42px] font-semibold tracking-tight
+  bg-gradient-to-br ${getRoleColor(role)}
+  shadow-[0_6px_18px_rgba(0,0,0,0.45)]
+`}
+          >
+            {role?.charAt(0).toUpperCase()}
+          </div>
 
           {/* Interview Role */}
           <h3 className="mt-5 capitalize">{role} Interview</h3>

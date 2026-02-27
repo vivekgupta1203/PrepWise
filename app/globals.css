@@ -332,3 +332,19 @@
     transform: translateY(0);
   }
 }
+
+/* ===== FLOATING HERO CARDS ===== */
+.float-card {
+  position: absolute;
+  padding: 10px 16px;
+  border-radius: 9999px;
+  background: rgba(255,255,255,0.06);
+  backdrop-filter: blur(14px);
+  border: 1px solid rgba(255,255,255,0.12);
+  color: rgba(255,255,255,0.9);
+  font-size: 13px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.35);
+}
+
+
+

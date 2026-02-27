@@ -14,8 +14,7 @@ const RootLayout = async ({ children }: { children: ReactNode }) => {
   return (
     <div className="root-layout">
       {/* NAVBAR */}
-      <nav className="w-full bg-black/40 backdrop-blur-xl border-b border-white/10">
-        <div className="max-w-7xl mx-auto h-16 px-6 flex items-center justify-between">
+<nav className="relative z-50 w-full bg-black/40 backdrop-blur-xl border-b border-white/10">        <div className="max-w-7xl mx-auto h-16 px-6 flex items-center justify-between">
           {/* LEFT — LOGO */}
           <Link href="/" className="flex items-center gap-2">
             <Image src="/logo.svg" alt="PrepWise Logo" width={38} height={32} />
@@ -29,6 +28,20 @@ const RootLayout = async ({ children }: { children: ReactNode }) => {
               className="text-sm font-medium text-white/70 hover:text-white transition"
             >
               Home
+            </Link>
+
+            <Link
+              href="/dashboard"
+              className="text-sm text-white/70 hover:text-white"
+            >
+              Dashboard
+            </Link>
+
+            <Link
+              href="/pricing"
+              className="text-sm font-medium text-white/70 hover:text-white transition"
+            >
+              Pricing
             </Link>
 
             <Link
