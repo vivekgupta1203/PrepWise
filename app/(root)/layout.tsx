@@ -14,7 +14,9 @@ const RootLayout = async ({ children }: { children: ReactNode }) => {
   return (
     <div className="root-layout">
       {/* NAVBAR */}
-<nav className="relative z-50 w-full bg-black/40 backdrop-blur-xl border-b border-white/10">        <div className="max-w-7xl mx-auto h-16 px-6 flex items-center justify-between">
+      <nav className="relative z-50 w-full bg-black/40 backdrop-blur-xl border-b border-white/10">
+        {" "}
+        <div className="max-w-7xl mx-auto h-16 px-6 flex items-center justify-between">
           {/* LEFT — LOGO */}
           <Link href="/" className="flex items-center gap-2">
             <Image src="/logo.svg" alt="PrepWise Logo" width={38} height={32} />
@@ -64,13 +66,16 @@ const RootLayout = async ({ children }: { children: ReactNode }) => {
               name={user?.name}
               email={user?.email}
               initial={user?.name?.charAt(0)}
+              image={user?.image || null}   // ✅ add this
             />
           </div>
         </div>
       </nav>
 
       {/* PAGE CONTENT */}
-      {children}
+<main className="pt-16">
+  {children}
+</main>
 
       <Footer />
     </div>

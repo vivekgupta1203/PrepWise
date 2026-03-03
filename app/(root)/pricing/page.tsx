@@ -1,8 +1,34 @@
 "use client";
 
 import { motion } from "framer-motion";
+import { useEffect, useState } from "react";
+
 
 export default function PricingPage() {
+  const [user, setUser] = useState<any>(null);
+
+  useEffect(() => {
+    async function fetchUser() {
+      const res = await fetch("/api/me");
+      const data = await res.json();
+      setUser(data.user);
+    }
+
+    fetchUser();
+  }, []);
+
+  const handleUpgrade = async () => {
+    if (!user) return;
+
+    const res = await fetch("/api/checkout", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email: user.email }),
+    });
+
+    const data = await res.json();
+    window.location.href = data.url;
+  };
   return (
     <main className="relative overflow-hidden bg-[#07070c]">
       {/* TOP GLOW */}
@@ -72,8 +98,8 @@ export default function PricingPage() {
             <p className="text-white/80 text-sm">Unlimited</p>
 
             <div className="mt-3 text-5xl font-semibold text-white">
-              $19.99
-              <span className="text-lg font-medium text-white/70"> / week</span>
+              ₹499
+              <span className="text-lg font-medium text-white/70"> / month</span>
             </div>
 
             <ul className="mt-10 space-y-4 text-white/85 text-sm text-left">
@@ -84,7 +110,8 @@ export default function PricingPage() {
               <li>✓ Secure payments</li>
             </ul>
 
-            <button className="mt-12 rounded-full bg-white text-black font-semibold px-6 py-3 hover:bg-white hover:scale-[1.03] active:scale-[0.97] transition-all duration-200 shadow-[0_8px_25px_rgba(255,255,255,0.15)] hover:shadow-[0_12px_35px_rgba(255,255,255,0.25)]">
+            <button className="mt-12 rounded-full bg-white text-black font-semibold px-6 py-3 hover:bg-white hover:scale-[1.03] active:scale-[0.97] transition-all duration-200 shadow-[0_8px_25px_rgba(255,255,255,0.15)] hover:shadow-[0_12px_35px_rgba(255,255,255,0.25)]"
+            onClick={handleUpgrade}>
               Get unlimited interviews
             </button>
           </motion.div>

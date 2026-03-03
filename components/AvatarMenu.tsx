@@ -2,20 +2,28 @@
 
 import { useState, useRef, useEffect } from "react";
 import { signOut } from "@/lib/actions/auth.action";
-import AccountPanel from "@/components/AccountPanel";
+import AccountPanel from "./home/AccountPanel";
+import { useRouter } from "next/navigation";
+import Image from "next/image";
 
 type Props = {
   name?: string;
   email?: string;
   initial?: string;
+  image?: string | null;
 };
 
-export default function AvatarMenu({ name, email, initial }: Props) {
+export default function AvatarMenu({
+  name,
+  email,
+  initial,
+  image,
+}: Props) {
   const [open, setOpen] = useState(false);
   const [accountOpen, setAccountOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
+  const router = useRouter();
 
-  // close on outside click
   useEffect(() => {
     function handleClick(e: MouseEvent) {
       if (!ref.current?.contains(e.target as Node)) {
@@ -31,33 +39,42 @@ export default function AvatarMenu({ name, email, initial }: Props) {
       {/* Avatar */}
       <button
         onClick={() => setOpen(!open)}
-        className="w-9 h-9 rounded-full 
-                   bg-gradient-to-tr from-indigo-500 to-purple-500 
-                   flex items-center justify-center 
-                   text-white font-semibold"
+        className="w-9 h-9 rounded-full overflow-hidden flex items-center justify-center"
       >
-        {initial ?? "U"}
+        {image ? (
+          <Image
+            src={image}
+            alt="avatar"
+            width={36}
+            height={36}
+            className="rounded-full object-cover"
+          />
+        ) : (
+          <div className="w-9 h-9 rounded-full bg-gradient-to-tr from-indigo-500 to-purple-500 flex items-center justify-center text-white font-semibold">
+            {initial ?? "U"}
+          </div>
+        )}
       </button>
 
       {/* Dropdown */}
       {open && (
-        <div
-          className="
-            absolute right-0 mt-3 w-64
-            rounded-xl border border-white/10
-            bg-neutral-900/95 backdrop-blur-xl
-            shadow-xl overflow-hidden
-          "
-        >
+        <div className="absolute right-0 mt-3 w-64 rounded-xl border border-white/10 bg-neutral-900/95 backdrop-blur-xl shadow-xl overflow-hidden">
           {/* User */}
           <div className="flex items-center gap-3 p-4 border-b border-white/10">
-            <div
-              className="w-10 h-10 shrink-0 rounded-full 
-                bg-gradient-to-tr from-indigo-500 to-purple-500 
-                flex items-center justify-center 
-                text-white font-semibold"
-            >
-              {initial ?? "U"}
+            <div className="w-10 h-10 shrink-0 rounded-full overflow-hidden">
+              {image ? (
+                <Image
+                  src={image}
+                  alt="avatar"
+                  width={40}
+                  height={40}
+                  className="rounded-full object-cover"
+                />
+              ) : (
+                <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-indigo-500 to-purple-500 flex items-center justify-center text-white font-semibold">
+                  {initial ?? "U"}
+                </div>
+              )}
             </div>
 
             <div>
@@ -73,9 +90,9 @@ export default function AvatarMenu({ name, email, initial }: Props) {
             <button
               onClick={() => {
                 setOpen(false);
-                setAccountOpen(true);
+                router.push("/account");
               }}
-              className="w-full text-left px-4 py-2 text-sm text-neutral-200 hover:bg-white/5"
+              className="w-full text-left px-3 py-2 hover:bg-white/5 rounded-md"
             >
               Manage account
             </button>
@@ -83,7 +100,7 @@ export default function AvatarMenu({ name, email, initial }: Props) {
             <button
               onClick={async () => {
                 await signOut();
-                window.location.href = "/sign-in";
+                router.push("/sign-in");
               }}
               className="w-full text-left px-4 py-2 text-sm text-neutral-200 hover:bg-white/5"
             >
@@ -91,14 +108,20 @@ export default function AvatarMenu({ name, email, initial }: Props) {
             </button>
           </div>
 
-          {/* Footer */}
           <div className="px-4 py-2 text-xs text-neutral-500 border-t border-white/10">
             Secured by PrepWise
           </div>
         </div>
       )}
 
-      
+      <AccountPanel
+        open={accountOpen}
+        onOpenChange={setAccountOpen}
+        user={{
+          name: name || "",
+          email: email || "",
+        }}
+      />
     </div>
   );
 }

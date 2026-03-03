@@ -1,6 +1,7 @@
 "use server";
 
 import { google } from "@ai-sdk/google";
+import { getCurrentUser } from "@/lib/actions/auth.action";
 
 import { db } from "@/firebase/admin";
 import { feedbackSchema } from "@/constants";
@@ -9,11 +10,26 @@ import { generateObject } from "ai";
 export async function createFeedback(params: CreateFeedbackParams) {
   const { interviewId, userId, transcript, feedbackId } = params;
 
+  // 🔒 PLAN CHECK
+  const user = await getCurrentUser();
+
+  if (!user) {
+    return { success: false, message: "Unauthorized" };
+  }
+
+  if (user.plan === "free" && user.interviewCount >= 3) {
+    return {
+      success: false,
+      message:
+        "Free plan limit reached. Upgrade to Pro for unlimited interviews.",
+    };
+  }
+
   try {
     const formattedTranscript = transcript
       .map(
         (sentence: { role: string; content: string }) =>
-          `- ${sentence.role}: ${sentence.content}\n`
+          `- ${sentence.role}: ${sentence.content}\n`,
       )
       .join("");
 
@@ -57,6 +73,14 @@ export async function createFeedback(params: CreateFeedbackParams) {
 
     await feedbackRef.set(feedback);
 
+    // 🔢 Increase interview usage count
+    await db
+      .collection("users")
+      .doc(user.id)
+      .update({
+        interviewCount: (user.interviewCount || 0) + 1,
+      });
+
     return { success: true, feedbackId: feedbackRef.id };
   } catch (error) {
     console.error("Error saving feedback:", error);
@@ -71,7 +95,7 @@ export async function getInterviewById(id: string): Promise<Interview | null> {
 }
 
 export async function getFeedbackByInterviewId(
-  params: GetFeedbackByInterviewIdParams
+  params: GetFeedbackByInterviewIdParams,
 ): Promise<Feedback | null> {
   const { interviewId, userId } = params;
 
@@ -89,7 +113,7 @@ export async function getFeedbackByInterviewId(
 }
 
 export async function getLatestInterviews(
-  params: GetLatestInterviewsParams
+  params: GetLatestInterviewsParams,
 ): Promise<Interview[] | null> {
   const { userId, limit = 20 } = params;
 
@@ -108,7 +132,7 @@ export async function getLatestInterviews(
 }
 
 export async function getInterviewsByUserId(
-  userId: string
+  userId: string,
 ): Promise<Interview[] | null> {
   const interviews = await db
     .collection("interviews")

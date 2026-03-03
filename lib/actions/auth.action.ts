@@ -2,6 +2,7 @@
 
 import { auth, db } from "@/firebase/admin";
 import { cookies } from "next/headers";
+import { User } from "@/types/user";
 
 // Session duration (1 week)
 const SESSION_DURATION = 60 * 60 * 24 * 7;
@@ -29,20 +30,26 @@ export async function signUp(params: SignUpParams) {
   const { uid, name, email } = params;
 
   try {
-    // check if user exists in db
     const userRecord = await db.collection("users").doc(uid).get();
-    if (userRecord.exists)
+
+    if (userRecord.exists) {
       return {
         success: false,
         message: "User already exists. Please sign in.",
       };
+    }
 
-    // save user to db
     await db.collection("users").doc(uid).set({
+      uid,
       name,
       email,
-      // profileURL,
-      // resumeURL,
+
+      // 🚀 PLAN SYSTEM
+      plan: "free", // default plan
+      subscriptionStatus: "inactive",
+      interviewCount: 0,
+
+      createdAt: new Date(),
     });
 
     return {
@@ -52,7 +59,6 @@ export async function signUp(params: SignUpParams) {
   } catch (error: any) {
     console.error("Error creating user:", error);
 
-    // Handle Firebase specific errors
     if (error.code === "auth/email-already-exists") {
       return {
         success: false,
@@ -72,7 +78,7 @@ export async function signIn(params: SignInParams) {
 
   try {
     const userRecord = await auth.getUserByEmail(email);
-    
+
     if (!userRecord)
       return {
         success: false,
@@ -100,8 +106,8 @@ export async function signOut() {
 // Get current user from session cookie
 export async function getCurrentUser(): Promise<User | null> {
   const cookieStore = await cookies();
-
   const sessionCookie = cookieStore.get("session")?.value;
+
   if (!sessionCookie) return null;
 
   try {
@@ -112,16 +118,22 @@ export async function getCurrentUser(): Promise<User | null> {
       .collection("users")
       .doc(decodedClaims.uid)
       .get();
+
     if (!userRecord.exists) return null;
 
+    const data = userRecord.data();
+
     return {
-      ...userRecord.data(),
       id: userRecord.id,
+      name: data?.name,
+      email: data?.email,
+      image: data?.image ?? null,
+      plan: data?.plan ?? "free",
+      subscriptionStatus: data?.subscriptionStatus ?? "inactive",
+      interviewCount: data?.interviewCount ?? 0,
     } as User;
   } catch (error) {
-    console.log(error);
-
-    // Invalid or expired session
+    console.log("Session verification failed:", error);
     return null;
   }
 }
@@ -129,5 +141,48 @@ export async function getCurrentUser(): Promise<User | null> {
 // Check if user is authenticated
 export async function isAuthenticated() {
   const user = await getCurrentUser();
+  const cookieStore = cookies();
   return !!user;
+}
+
+export async function updateProfile({
+  name,
+  image,
+}: {
+  name: string;
+  image?: string;
+}) {
+  const user = await getCurrentUser();
+  if (!user) throw new Error("Not authenticated");
+
+  await db.collection("users").doc(user.id).update({
+    name,
+    image,
+  });
+}
+
+export async function updatePasswordAction({
+  currentPassword,
+  newPassword,
+}: {
+  currentPassword: string;
+  newPassword: string;
+}) {
+  const user = await getCurrentUser();
+  if (!user) throw new Error("Not authenticated");
+
+  // ⚠ IMPORTANT
+  // Since you're using Admin SDK,
+  // you CANNOT verify current password directly.
+  // That requires client-side Firebase Auth reauthentication.
+  // For now we skip validation OR implement client reauth later.
+
+  await auth.updateUser(user.id, {
+    password: newPassword,
+  });
+
+  // Optional: store last password update timestamp
+  await db.collection("users").doc(user.id).update({
+    passwordUpdatedAt: new Date(),
+  });
 }

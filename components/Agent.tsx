@@ -8,6 +8,7 @@ import { cn } from "@/lib/utils";
 import { vapi } from "@/lib/vapi.sdk";
 import { interviewer } from "@/constants";
 import { createFeedback } from "@/lib/actions/general.action";
+import { toast } from "sonner";
 
 enum CallStatus {
   INACTIVE = "INACTIVE",
@@ -88,23 +89,24 @@ const Agent = ({
     }
 
     const handleGenerateFeedback = async (messages: SavedMessage[]) => {
-      console.log("handleGenerateFeedback");
+  console.log("handleGenerateFeedback");
 
-      const { success, feedbackId: id } = await createFeedback({
-        interviewId: interviewId!,
-        userId: userId!,
-        transcript: messages,
-        feedbackId,
-      });
+  const result = await createFeedback({
+    interviewId: interviewId!,
+    userId: userId!,
+    transcript: messages,
+    feedbackId,
+  });
 
+  if (!result.success) {
+    toast.error(result.message || "Something went wrong");
+    return;
+  }
 
-      if (success && id) {
-        router.push(`/interview/${interviewId}/feedback`);
-      } else {
-        console.log("Error saving feedback");
-        router.push("/");
-      }
-    };
+  toast.success("Feedback generated successfully!");
+
+  router.push(`/interview/${interviewId}/feedback`);
+};
 
     if (callStatus === CallStatus.FINISHED) {
       if (type === "generate") {
