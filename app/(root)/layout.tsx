@@ -73,9 +73,7 @@ const RootLayout = async ({ children }: { children: ReactNode }) => {
       </nav>
 
       {/* PAGE CONTENT */}
-<main className="pt-16">
-  {children}
-</main>
+      {children}
 
       <Footer />
     </div>
